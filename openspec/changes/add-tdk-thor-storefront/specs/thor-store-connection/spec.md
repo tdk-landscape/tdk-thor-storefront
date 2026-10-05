@@ -9,7 +9,7 @@ The repo MUST commit `.env.example` and MUST NOT commit `.env`. The example MUST
 
 #### Scenario: Project slug URLs
 - **WHEN** an operator uses the project slug `acme`
-- **THEN** `.env.example` documents `https://api.thorcommerce.io/acme/storefront/graphql` and `https://api.thorcommerce.io/acme/admin/graphql`, and explains that these hosted endpoints are not localhost
+- **THEN** substituting that slug in the documented templates produces `https://api.thorcommerce.io/acme/storefront/graphql` and `https://api.thorcommerce.io/acme/admin/graphql`
 
 #### Scenario: Clone setup
 - **WHEN** an operator copies `.env.example` to `.env` and fills the Thor URLs, access token, and default market context

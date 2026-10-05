@@ -12,7 +12,7 @@ The storefront MUST request products through the BFF Storefront GraphQL route an
 - **THEN** the browser queries the BFF, the BFF queries the configured Thor Storefront GraphQL endpoint, and the grid lists the returned products, and search and category filtering narrow the list
 
 ### Requirement: Product detail
-Product detail MUST request its selected variant and contextual price through the BFF. Product detail MUST NOT require or query a quantity-rule field. When Thor returns no quantity rule, the page MUST NOT invent one.
+Product detail MUST request its selected variant and contextual price through the BFF. Product detail MUST NOT require or query a quantity-rule field. When Thor returns no quantity rule, the page MUST NOT invent one and MUST omit the quantity-rule row. If a later variant payload supplies minimum, maximum, or increment, the page MUST render the supplied limits without adding a quantity-rule query.
 
 #### Scenario: Detail variant and price
 - **WHEN** the operator opens a product
