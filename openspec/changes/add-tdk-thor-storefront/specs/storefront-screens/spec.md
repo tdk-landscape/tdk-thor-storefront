@@ -12,14 +12,22 @@ The storefront MUST request products through the BFF Storefront GraphQL route an
 - **THEN** the browser queries the BFF, the BFF queries the configured Thor Storefront GraphQL endpoint, and the grid lists the returned products, and search and category filtering narrow the list
 
 ### Requirement: Product detail
-Product detail MUST request its data through the BFF and show the selected variant, Thor contextual price, and the quantity rule when a company location is set.
+Product detail MUST request its data through the BFF and show the selected variant, Thor contextual price, and a quantity rule only when Thor returns one in the variant payload. The public-schema operations MUST NOT query a speculative quantity-rule field.
 
-#### Scenario: Detail with location
-- **WHEN** a company location is set and the operator opens a product
-- **THEN** the page shows the variant, Thor's contextual price, and the quantity rule
+#### Scenario: Detail price
+- **WHEN** the operator opens a product
+- **THEN** the page shows the selected variant and Thor's contextual price
+
+#### Scenario: Optional quantity rule
+- **WHEN** Thor returns a quantity rule in the selected variant payload
+- **THEN** the page renders the returned minimum, maximum, and increment
+
+#### Scenario: No quantity rule
+- **WHEN** the public Thor payload has no quantity rule
+- **THEN** detail and add-line remain usable without inventing a rule or querying unsupported fields
 
 ### Requirement: Market switch
-The market switch MUST send the selected channel, country, and currency to the BFF. The BFF MUST apply that selection and the server-configured company location to Thor's GraphQL context and return refreshed prices.
+The market switch MUST send a configured market ID to the BFF. The BFF MUST resolve the server-owned channel, country, and currency mapping and send the declared Thor `priceChannelId`, `priceCountry`, and `priceCurrency` variables. It MUST reject unknown markets and return refreshed prices. A market change MUST discard the previous local cart reference so a cart cannot retain a different price context.
 
 #### Scenario: Price changes with market
 - **WHEN** the operator switches market and Thor returns a different contextual price

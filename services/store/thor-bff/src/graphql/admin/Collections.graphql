@@ -1,0 +1,1 @@
+query AdminCollections { collections(first:50) { nodes { id name slug } } }

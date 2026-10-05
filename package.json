@@ -1,0 +1,16 @@
+{
+  "name": "tdk-thor-storefront",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "services/*/*"
+  ],
+  "scripts": {
+    "thor:preflight": "bun scripts/thor-preflight.ts",
+    "dev:store": "bun scripts/dev-store.ts",
+    "test": "bun test scripts services/store/thor-bff/tests && bun run --cwd services/store/storefront-web test",
+    "check": "bun run --cwd services/store/thor-bff check && bun run --cwd services/store/storefront-web check",
+    "build:local": "bun run --cwd services/store/storefront-web build:local"
+  }
+}

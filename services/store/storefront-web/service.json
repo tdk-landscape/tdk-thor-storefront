@@ -1,0 +1,35 @@
+{
+  "port": 3300,
+  "dependsOn": [
+    "thor-bff"
+  ],
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "dev": {
+    "command": "bun run dev",
+    "watch": [
+      "src/**/*",
+      "public/**/*"
+    ]
+  },
+  "$schema": "https://tdk-landscape.github.io/schema.service.json",
+  "schemaVersion": 1,
+  "appName": "storefront-web",
+  "appType": "frontend",
+  "featuresEnabled": [],
+  "name": "storefront-web",
+  "type": "frontend",
+  "stack": "store",
+  "framework": "vue",
+  "healthCheckPath": "/",
+  "healthCheck": {
+    "enabled": true,
+    "path": "/"
+  },
+  "params": {
+    "VITE_THOR_BFF_URL": "${VITE_THOR_BFF_URL:-}"
+  },
+  "basePath": "/storefront-web"
+}
