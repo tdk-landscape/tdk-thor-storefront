@@ -1,0 +1,36 @@
+appName: thor-bff
+appType: backend
+stack: store
+port: 4300
+$schema: https://tdk-landscape.github.io/schema.service.json
+build:
+  context: .
+  dockerfile: Dockerfile
+dependsOn:
+dev:
+  command: bun run dev
+  watch:
+    - src/**/*
+featuresEnabled:
+healthCheck:
+  enabled: True
+  path: /health
+healthCheckPath: /health
+name: thor-bff
+params:
+  THOR_ACCESS_TOKEN: ${THOR_ACCESS_TOKEN:-}
+  THOR_ADMIN_API_KEY: ${THOR_ADMIN_API_KEY:-}
+  THOR_ADMIN_URL: ${THOR_ADMIN_URL:-}
+  THOR_AUTH_SECRET: ${THOR_AUTH_SECRET:-}
+  THOR_BFF_ORIGIN: ${THOR_BFF_ORIGIN:-}
+  THOR_CHANNEL: ${THOR_CHANNEL:-}
+  THOR_COMPANY_LOCATION_ID: ${THOR_COMPANY_LOCATION_ID:-}
+  THOR_COMPANY_PRICE_CHANNEL_ID: ${THOR_COMPANY_PRICE_CHANNEL_ID:-}
+  THOR_CURRENCY: ${THOR_CURRENCY:-}
+  THOR_FRONTEND_ORIGIN: ${THOR_FRONTEND_ORIGIN:-}
+  THOR_MARKET: ${THOR_MARKET:-}
+  THOR_MARKETS: ${THOR_MARKETS:-}
+  THOR_STOREFRONT_URL: ${THOR_STOREFRONT_URL:-}
+  THOR_STORE_ID: ${THOR_STORE_ID:-}
+schemaVersion: 1
+type: backend

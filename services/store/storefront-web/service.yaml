@@ -1,0 +1,27 @@
+appName: storefront-web
+appType: frontend
+stack: store
+port: 3300
+$schema: https://tdk-landscape.github.io/schema.service.json
+basePath: /storefront-web
+build:
+  context: .
+  dockerfile: Dockerfile
+dependsOn:
+  - thor-bff
+dev:
+  command: bun run dev
+  watch:
+    - src/**/*
+    - public/**/*
+featuresEnabled:
+framework: vue
+healthCheck:
+  enabled: True
+  path: /
+healthCheckPath: /
+name: storefront-web
+params:
+  VITE_THOR_BFF_URL: ${VITE_THOR_BFF_URL:-}
+schemaVersion: 1
+type: frontend

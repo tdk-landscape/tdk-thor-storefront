@@ -1,0 +1,43 @@
+{
+  "port": 4300,
+  "dependsOn": [],
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "dev": {
+    "command": "bun run dev",
+    "watch": [
+      "src/**/*"
+    ]
+  },
+  "healthCheckPath": "/health",
+  "$schema": "https://tdk-landscape.github.io/schema.service.json",
+  "schemaVersion": 1,
+  "appName": "thor-bff",
+  "appType": "backend",
+  "featuresEnabled": [],
+  "name": "thor-bff",
+  "type": "backend",
+  "stack": "store",
+  "healthCheck": {
+    "enabled": true,
+    "path": "/health"
+  },
+  "params": {
+    "THOR_STOREFRONT_URL": "${THOR_STOREFRONT_URL:-}",
+    "THOR_ADMIN_URL": "${THOR_ADMIN_URL:-}",
+    "THOR_ACCESS_TOKEN": "${THOR_ACCESS_TOKEN:-}",
+    "THOR_ADMIN_API_KEY": "${THOR_ADMIN_API_KEY:-}",
+    "THOR_STORE_ID": "${THOR_STORE_ID:-}",
+    "THOR_CHANNEL": "${THOR_CHANNEL:-}",
+    "THOR_MARKET": "${THOR_MARKET:-}",
+    "THOR_CURRENCY": "${THOR_CURRENCY:-}",
+    "THOR_MARKETS": "${THOR_MARKETS:-}",
+    "THOR_COMPANY_LOCATION_ID": "${THOR_COMPANY_LOCATION_ID:-}",
+    "THOR_COMPANY_PRICE_CHANNEL_ID": "${THOR_COMPANY_PRICE_CHANNEL_ID:-}",
+    "THOR_AUTH_SECRET": "${THOR_AUTH_SECRET:-}",
+    "THOR_FRONTEND_ORIGIN": "${THOR_FRONTEND_ORIGIN:-}",
+    "THOR_BFF_ORIGIN": "${THOR_BFF_ORIGIN:-}"
+  }
+}

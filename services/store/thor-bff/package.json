@@ -1,0 +1,25 @@
+{
+  "name": "@tdk-thor/thor-bff",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "build": "bun build src/index.ts --target bun --packages external --outdir dist",
+    "start": "bun dist/index.js",
+    "test": "bun test",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hono": "^4.9.0",
+    "zod": "^4.1.0",
+    "dotenv": "^17.2.0",
+    "graphql": "^16.11.0",
+    "better-auth": "^1.3.0",
+    "@thor-commerce/better-auth-thor": "0.2.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.0"
+  }
+}

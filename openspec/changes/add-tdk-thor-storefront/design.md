@@ -35,7 +35,7 @@ tdk resource storefront-web --type frontend --framework vue --stack store
 
 2. **The BFF is the sole Thor GraphQL caller.** The browser sends product, detail, contextual-price, and cart operations to the BFF service-relative `POST /storefront/graphql` route under its generated Traefik prefix. The BFF calls only the configured Storefront GraphQL endpoint for those operations and attaches server-held credentials and the active buyer context. It accepts the storefront's supported operations, not an arbitrary upstream URL or an Admin query. `THOR_ACCESS_TOKEN` and Better Auth credentials remain on the BFF. The service-relative `GET /collections` route is the sole Admin GraphQL read in v1. Direct browser-to-Thor GraphQL and browser-held Thor tokens are excluded, so the token boundary and buyer-price context have one owner.
 
-3. **Market context is channel, market, currency, and optional company location.** Defaults come from `THOR_CHANNEL`, `THOR_MARKET`, and `THOR_CURRENCY`; `THOR_COMPANY_LOCATION_ID` is optional. The browser sends the selected channel, country, and currency with its BFF request; the BFF applies these values and the server-configured company location to Thor's GraphQL context and reloads prices. The example never calculates prices.
+3. **Use declared Thor context variables and server-owned market mappings.** Defaults come from `THOR_STORE_ID`, `THOR_CHANNEL`, `THOR_MARKET`, and `THOR_CURRENCY`. The browser selects an allowlisted market ID from `THOR_MARKETS`; the BFF maps it to `storeId`, `priceChannelId`, `priceCountry`, and `priceCurrency`. Thor's public schema has no company-location or quantity-rule argument. Optional `THOR_COMPANY_LOCATION_ID` is agency metadata and requires an explicit `THOR_COMPANY_PRICE_CHANNEL_ID` buyer-channel mapping; the BFF sends that channel rather than inventing a location header. Detail renders a quantity rule only if a future variant payload already returns it. No quantity-rule query is shipped, and v1 done checks do not require that field. The example never calculates prices. Market switching drops the local cart reference before requesting the new prices.
 
 4. **Checkout is a Thor handoff.** Cart creation and add-line operations pass through the BFF to Thor. Checkout links to Thor hosted checkout; there is no local payment flow or local order record.
 
@@ -62,3 +62,7 @@ This is a new example repo. There is no data migration. Scaffold the two resourc
 ## Open Questions
 
 No product questions block the specs. The repo preflight and BFF-only GraphQL path are fixed decisions. Sign-in uses the Better Auth plugin when its credentials are configured; the server-side `.env` token is the documented fallback.
+
+## Implementation contract
+
+Storefront requests use `x-thor-storefront-token`; customer sessions add `Authorization: Bearer` only on the BFF. Admin collections use the separate `THOR_ADMIN_API_KEY` as `X-Api-Key`. Better Auth plugin cookies remain server-side; the browser receives only an opaque HttpOnly session ID. Sessions are in memory and expire after one hour or a BFF restart. The operation allowlist contains exactly `ProductGrid`, `ProductDetail`, `ProductPrice`, `CartCreate`, and `CartAddLine`, backed by fixed public-schema-validated documents.

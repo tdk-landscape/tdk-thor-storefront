@@ -12,7 +12,7 @@ Hold Thor credentials and market context on the server, and keep the Admin crede
 - **THEN** no response contains an Admin credential
 
 ### Requirement: Storefront GraphQL through the BFF
-The BFF MUST expose service-relative `POST /storefront/graphql` under its generated Traefik prefix for the supported product grid, product detail, contextual-price, cart-create, and add-line operations. The browser MUST call this route; the BFF MUST call the configured Thor Storefront GraphQL endpoint with server-held credentials and buyer context. The route MUST NOT accept a caller-supplied upstream URL or perform Admin GraphQL operations.
+The BFF MUST expose service-relative `POST /storefront/graphql` under its generated Traefik prefix for the supported product grid, product detail, contextual-price, cart-create, and add-line operations. The browser MUST call this route; the BFF MUST call the configured Thor Storefront GraphQL endpoint with server-held credentials and buyer context. The route MUST accept only the named `ProductGrid`, `ProductDetail`, `ProductPrice`, `CartCreate`, and `CartAddLine` operations with validated operation-specific variables. The BFF MUST supply fixed query documents. It MUST reject arbitrary query text, caller-supplied context or upstream URLs, and Admin GraphQL operations.
 
 #### Scenario: Product query path
 - **WHEN** the browser requests products through the generated BFF route
@@ -41,8 +41,8 @@ The BFF MUST expose service-relative `POST /storefront/graphql` under its genera
 - **THEN** the BFF reads collections from Admin GraphQL and returns them without exposing the Admin credential
 
 ### Requirement: Buyer price context
-When `THOR_COMPANY_LOCATION_ID` is set, the BFF MUST include that company location in the grid's Thor Storefront GraphQL request for the buyer's price. Prices MUST be whatever Thor returns. The repo MUST NOT compute prices.
+The BFF MUST use Thor's declared `storeId`, `priceChannelId`, `priceCountry`, and `priceCurrency` variables. The public schema has no company-location argument. When `THOR_COMPANY_LOCATION_ID` is set, the operator MUST configure its explicit Thor buyer channel mapping in `THOR_COMPANY_PRICE_CHANNEL_ID`; missing mapping MUST fail with `THOR_COMPANY_PRICE_CHANNEL_ID_REQUIRED`. The location remains optional agency metadata and MUST NOT become an invented upstream header or variable. Prices MUST be whatever Thor returns. The repo MUST NOT compute prices.
 
 #### Scenario: Company location set
 - **WHEN** `THOR_COMPANY_LOCATION_ID` is set and the grid loads
-- **THEN** the browser calls the BFF and the BFF's Thor price request includes that company location and the displayed price is Thor's response
+- **THEN** the browser calls the BFF and the BFF's Thor price request uses the configured buyer price-channel mapping and the displayed price is Thor's response
