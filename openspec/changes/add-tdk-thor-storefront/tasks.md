@@ -11,6 +11,8 @@
 - [x] 2.3 Add `bun run thor:preflight --dry-run` to combine the existing TDK dry-run resource/route preview with masked Thor env set/missing status. Verify missing variables are report-only, TDK preview failures propagate, and no Thor request, configuration write, or container startup occurs. Document the repo command separately from plain TDK dry-run.
 - [x] 2.4 Add `bun run codegen` in `storefront-web` using `@thor-commerce/graphql-codegen-preset` against `https://api.thorcommerce.io/storefront/graphql/schema.graphql` and `https://api.thorcommerce.io/admin/graphql/schema.graphql` (preset defaults), with `@graphql-codegen/cli` and `graphql` installed. Verify no tenant schema URL or TDK generator is used.
 
+- [x] 2.5 Add `bun run dev:local` to validate the root Thor environment, run both resources with local origins on ports 3300/4300, refuse occupied ports, and stop both children together. Document direct `tdk up store` as the Traefik option.
+
 ## 3. BFF
 
 - [x] 3.1 Implement service-relative `GET /health`, `GET /context`, and `GET /collections` under the generated BFF prefix. Verify their generated public URLs; keep collections as the only Admin read and verify no Thor credential appears in browser responses.
