@@ -49,6 +49,8 @@ tdk resource storefront-web --type frontend --framework vue --stack store
 
 7. **Use generated routes and unpublished container ports.** `thor-bff` listens on container port 4300 and `storefront-web` on container port 3300. Public URLs and path prefixes come from the TDK-generated Traefik configuration; do not infer them from resource names. BFF endpoint paths in these specs are service-relative and are combined with the generated prefix. Discover the actual URLs using `tdk up store --dry-run` and `tdk networks`, verify them after scaffolding, and put the concrete storefront, BFF health, and collections URLs in the repo README. No container port is bound to localhost. This uses the generator's routing contract rather than a hand-picked `/api/thor-bff` prefix.
 
+8. **Two development entry points.** `tdk up store` runs the shared generated runtime and Traefik routes. `bun run dev:local` validates the same Thor configuration, runs the BFF and Vue/Vite on host ports 4300 and 3300 with matching local origins, and stops both children on interruption or a child exit. Host development uses the repository-owned Vite config; TDK-generated files remain untouched. The guarded `bun run dev:store` wrapper remains available.
+
 ## Risks / Trade-offs
 
 - Public schemas may differ from an agency's tenant schema; document tenant-only fields as out of scope for v1.
