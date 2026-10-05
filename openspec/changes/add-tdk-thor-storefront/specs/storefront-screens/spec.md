@@ -12,19 +12,15 @@ The storefront MUST request products through the BFF Storefront GraphQL route an
 - **THEN** the browser queries the BFF, the BFF queries the configured Thor Storefront GraphQL endpoint, and the grid lists the returned products, and search and category filtering narrow the list
 
 ### Requirement: Product detail
-Product detail MUST request its data through the BFF and show the selected variant, Thor contextual price, and a quantity rule only when Thor returns one in the variant payload. The public-schema operations MUST NOT query a speculative quantity-rule field.
+Product detail MUST request its selected variant and contextual price through the BFF. Product detail MUST NOT require or query a quantity-rule field. When Thor returns no quantity rule, the page MUST NOT invent one and MUST omit the quantity-rule row. If a later variant payload supplies minimum, maximum, or increment, the page MUST render the supplied limits without adding a quantity-rule query.
 
-#### Scenario: Detail price
+#### Scenario: Detail variant and price
 - **WHEN** the operator opens a product
-- **THEN** the page shows the selected variant and Thor's contextual price
+- **THEN** the page requests through the BFF and shows the selected variant and Thor's contextual price
 
-#### Scenario: Optional quantity rule
-- **WHEN** Thor returns a quantity rule in the selected variant payload
-- **THEN** the page renders the returned minimum, maximum, and increment
-
-#### Scenario: No quantity rule
-- **WHEN** the public Thor payload has no quantity rule
-- **THEN** detail and add-line remain usable without inventing a rule or querying unsupported fields
+#### Scenario: Payload has no quantity rule
+- **WHEN** Thor returns a selected variant without a quantity rule
+- **THEN** the page still renders the variant and contextual price without inventing a quantity rule
 
 ### Requirement: Market switch
 The market switch MUST send a configured market ID to the BFF. The BFF MUST resolve the server-owned channel, country, and currency mapping and send the declared Thor `priceChannelId`, `priceCountry`, and `priceCurrency` variables. It MUST reject unknown markets and return refreshed prices. A market change MUST discard the previous local cart reference so a cart cannot retain a different price context.

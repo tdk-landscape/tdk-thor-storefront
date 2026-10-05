@@ -6,7 +6,7 @@
 
 ## 2. Thor connection
 
-- [x] 2.1 Commit `.env.example` with `THOR_STOREFRONT_URL`, `THOR_ADMIN_URL`, `THOR_ACCESS_TOKEN`, `THOR_CHANNEL`, `THOR_MARKET`, `THOR_CURRENCY`, separate `THOR_ADMIN_API_KEY`, `THOR_STORE_ID`, supported market mappings, and optional company location with explicit buyer-channel mapping. Confirm `.env` is ignored.
+- [x] 2.1 Document in `.env.example` how to obtain the Thor project slug from `accounts.thorcommerce.io` or the `npx --yes create-thor-store@latest --workspace <ThorStores-folder>` onboarding completion prompt, with hosted Storefront and Admin URL templates. Include the server credentials and market context variables; keep optional company location mapped to its buyer price channel. Confirm `.env` is ignored.
 - [x] 2.2 Add `scripts/thor-preflight.ts`, `bun run thor:preflight`, and `bun run dev:store`. Verify absent, empty, and whitespace-only Storefront URLs fail with `THOR_STOREFRONT_URL_REQUIRED` before the wrapper invokes TDK; reuse the guard in the BFF entrypoint before it binds its listener and show an explicit frontend error if direct TDK startup fails.
 - [x] 2.3 Add `bun run thor:preflight --dry-run` to combine the existing TDK dry-run resource/route preview with masked Thor env set/missing status. Verify missing variables are report-only, TDK preview failures propagate, and no Thor request, configuration write, or container startup occurs. Document the repo command separately from plain TDK dry-run.
 - [x] 2.4 Add `bun run codegen` in `storefront-web` using `@thor-commerce/graphql-codegen-preset` against `https://api.thorcommerce.io/storefront/graphql/schema.graphql` and `https://api.thorcommerce.io/admin/graphql/schema.graphql` (preset defaults), with `@graphql-codegen/cli` and `graphql` installed. Verify no tenant schema URL or TDK generator is used.
@@ -20,7 +20,7 @@
 ## 4. Storefront screens
 
 - [x] 4.1 Build a product grid through the BFF Storefront GraphQL route with search and category filter. When a company location is configured, request Thor's contextual price for that buyer.
-- [x] 4.2 Add product detail through the BFF showing the selected variant, Thor's contextual price, and the quantity rule only when Thor returns it in the variant payload; do not query unsupported quantity-rule fields.
+- [x] 4.2 Add product detail through the BFF showing the selected variant and Thor's contextual price. Do not require or query a quantity-rule field; when absent from the payload, do not invent a rule.
 - [x] 4.3 Add market switching by allowlisted market ID; the BFF resolves channel, country, currency, and optional buyer-channel mapping and returns refreshed prices. Discard the previous cart reference on a context change.
 - [x] 4.4 Create carts and add lines through the BFF against Thor; link checkout to Thor hosted checkout. Keep payment and order records out of the landscape.
 - [x] 4.5 Use the Better Auth plugin when credentials exist and document the server-side `.env` token fallback. Confirm the fallback can load the grid.
