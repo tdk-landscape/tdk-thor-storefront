@@ -16,11 +16,11 @@ tdk resource storefront-web --type frontend --framework vue --stack store
 
 **Goals:**
 
-- Clone, configure `.env`, run `tdk up store`, and see products from the configured Thor store.
+- Clone, configure `.env`, run `bun run dev:store` (preflight followed by `tdk up store`), and see products from the configured Thor store.
 - Vue edits hot-reload without rebuilding Traefik.
 - A market switch requests prices in the new Thor context.
 - Missing store configuration fails with an actionable named error, and `tdk down` leaves no stack processes running.
-- Keep administrative credentials on the server.
+- Keep Storefront and Admin credentials on the BFF, with all Storefront GraphQL requests passing through it.
 
 **Non-Goals:**
 
@@ -33,17 +33,19 @@ tdk resource storefront-web --type frontend --framework vue --stack store
 
 1. **Two resources, one stack, no database.** `storefront-web` depends on `thor-bff`. Both live under `services/store/` so `.tdk/project.json` discovery finds them. The shared TDK runtime owns Docker, nginx, Traefik, and Tilt configuration.
 
-2. **The BFF owns Thor credentials.** `thor-bff` holds `THOR_ACCESS_TOKEN` (or a Better Auth session from `@thor-commerce/better-auth-thor`) and makes Thor requests on behalf of the storefront. Admin GraphQL is called only by the BFF; neither Admin credentials nor a server credential response may reach the browser. Storefront operations use the least-privileged mechanism supported by Thor; if a public Storefront token is required in-browser, it must be distinct from the Admin credential and documented as such.
+2. **The BFF is the sole Thor GraphQL caller.** The browser sends product, detail, contextual-price, and cart operations to the BFF service-relative `POST /storefront/graphql` route under its generated Traefik prefix. The BFF calls only the configured Storefront GraphQL endpoint for those operations and attaches server-held credentials and the active buyer context. It accepts the storefront's supported operations, not an arbitrary upstream URL or an Admin query. `THOR_ACCESS_TOKEN` and Better Auth credentials remain on the BFF. The service-relative `GET /collections` route is the sole Admin GraphQL read in v1. Direct browser-to-Thor GraphQL and browser-held Thor tokens are excluded, so the token boundary and buyer-price context have one owner.
 
-3. **Market context is channel, market, currency, and optional company location.** Defaults come from `THOR_CHANNEL`, `THOR_MARKET`, and `THOR_CURRENCY`; `THOR_COMPANY_LOCATION_ID` is optional. The market switch sends channel, country, and currency in Thor's GraphQL context and reloads prices. The example never calculates prices.
+3. **Market context is channel, market, currency, and optional company location.** Defaults come from `THOR_CHANNEL`, `THOR_MARKET`, and `THOR_CURRENCY`; `THOR_COMPANY_LOCATION_ID` is optional. The browser sends the selected channel, country, and currency with its BFF request; the BFF applies these values and the server-configured company location to Thor's GraphQL context and reloads prices. The example never calculates prices.
 
-4. **Checkout is a Thor handoff.** Cart creation and add-line operations target Thor. Checkout links to Thor hosted checkout; there is no local payment flow or local order record.
+4. **Checkout is a Thor handoff.** Cart creation and add-line operations pass through the BFF to Thor. Checkout links to Thor hosted checkout; there is no local payment flow or local order record.
 
-5. **Codegen is separate from TDK generation.** `bun run codegen` in `storefront-web` uses `@thor-commerce/graphql-codegen-preset` against the public Storefront schema at `https://api.thorcommerce.io/storefront/graphql/schema.graphql` and the public Admin schema. The schema fetch is not tenant-specific.
+5. **Codegen is separate from TDK generation.** `bun run codegen` in `storefront-web` uses `@thor-commerce/graphql-codegen-preset` against the public Storefront schema at `https://api.thorcommerce.io/storefront/graphql/schema.graphql` and the public Admin schema at `https://api.thorcommerce.io/admin/graphql/schema.graphql`, the preset defaults documented in the [package README](https://www.npmjs.com/package/@thor-commerce/graphql-codegen-preset). Install `@graphql-codegen/cli` and `graphql` alongside the preset; the preset does not ship the CLI. The schema fetch is not tenant-specific.
 
-6. **Missing configuration fails closed; dry-run stays offline.** A normal `tdk up store` must fail with a named `THOR_STOREFRONT_URL` error before the storefront can appear healthy. `tdk up store --dry-run` prints the expected Traefik hosts and whether Thor configuration is set, and makes no Thor request. The implementation must use a repo-supported startup/preflight mechanism; if the pinned CLI cannot provide the dry-run output or fail-fast behavior, surface that as an explicit CLI dependency rather than silently claiming the requirement is met.
+6. **Repo-owned checks provide the Thor configuration contract.** Implement `scripts/thor-preflight.ts` and root scripts `thor:preflight` and `dev:store`. `bun run thor:preflight` reads the root `.env` plus process-env overrides, trims `THOR_STOREFRONT_URL`, and exits nonzero with `THOR_STOREFRONT_URL_REQUIRED` when it is missing or blank. `bun run dev:store` runs that check before invoking `tdk up store`, stopping if the check fails. The BFF entrypoint reuses the same validation before binding its listener, so direct `tdk up store` also cannot produce a healthy BFF or a successful empty grid with missing configuration. This does not require the CLI itself to inspect Thor variables or return a particular error. The frontend displays BFF startup/connection failure explicitly instead of interpreting it as an empty catalog.
 
-7. **Use project-scoped hosts and unpublished container ports.** `thor-bff` listens on container port 4300 and is routed at `http://api.tdk-thor-storefront.localhost/api/thor-bff/health`. `storefront-web` listens on container port 3300 and is routed at `http://app.tdk-thor-storefront.localhost/storefront-web`. `tdk networks` lists both `*.localhost` routes; no container port is bound to localhost.
+   `bun run thor:preflight --dry-run` runs the existing `tdk up store --dry-run` for the resource and generated route report and adds set/missing status for the named Thor environment variables. It prints no credential values, makes no Thor request, writes no configuration, and starts no containers. Missing configuration is reported without failing this report-only mode; failure of the TDK preview is propagated. Plain `tdk up store --dry-run` keeps its existing TDK output and has no Thor env reporting requirement. A repo script was chosen over CLI customization so this change has no CLI behavior dependency.
+
+7. **Use generated routes and unpublished container ports.** `thor-bff` listens on container port 4300 and `storefront-web` on container port 3300. Public URLs and path prefixes come from the TDK-generated Traefik configuration; do not infer them from resource names. BFF endpoint paths in these specs are service-relative and are combined with the generated prefix. Discover the actual URLs using `tdk up store --dry-run` and `tdk networks`, verify them after scaffolding, and put the concrete storefront, BFF health, and collections URLs in the repo README. No container port is bound to localhost. This uses the generator's routing contract rather than a hand-picked `/api/thor-bff` prefix.
 
 ## Risks / Trade-offs
 
@@ -51,12 +53,12 @@ tdk resource storefront-web --type frontend --framework vue --stack store
 - An empty URL could otherwise look like an empty catalog; named startup failure must occur before the storefront reports ready.
 - Older CLI releases ignore the Vue framework field; document the 1.3.75+ prerequisite and link the `tdk-cli-core#149` Vue gate.
 - Hosted checkout leaves the TDK landscape by design; this example demonstrates the handoff, not a second checkout.
-- The proposed dry-run and fail-fast requirements may require a capability absent from the pinned CLI. Confirm the mechanism while implementing and do not add a CLI behavior claim without evidence.
+- Operators may bypass the documented wrapper and run `tdk up store` directly; the BFF reuses the configuration guard before listening, and the storefront displays a connection error instead of an empty grid.
 
 ## Migration Plan
 
-This is a new example repo. There is no migration; rollback is to withhold publication of the repo.
+This is a new example repo. There is no data migration. Scaffold the two resources in this existing repo, document the validated generated routes and wrapper commands, and publish the example after its done checks pass. Rollback is to revert the implementation commits.
 
 ## Open Questions
 
-No product questions block the specs. Sign-in uses the Better Auth plugin when its credentials are configured; the server-side `.env` token is the documented fallback.
+No product questions block the specs. The repo preflight and BFF-only GraphQL path are fixed decisions. Sign-in uses the Better Auth plugin when its credentials are configured; the server-side `.env` token is the documented fallback.

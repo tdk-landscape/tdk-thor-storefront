@@ -11,22 +11,37 @@ The repo MUST commit `.env.example` and MUST NOT commit `.env`. The example MUST
 - **WHEN** an operator copies `.env.example` to `.env` and fills the Thor URLs, access token, and default market context
 - **THEN** the stack can start against that Thor store and the filled file is not committed
 
-### Requirement: Named refusal on empty Storefront URL
-`tdk up store` MUST refuse to start when `THOR_STOREFRONT_URL` is empty, with a named error, and MUST NOT serve an empty product grid as if setup succeeded.
+### Requirement: Repo-owned configuration preflight
+The repo MUST provide `bun run thor:preflight`, backed by `scripts/thor-preflight.ts`, and `bun run dev:store`. The preflight MUST load the root `.env` with process-env overrides and MUST exit nonzero with `THOR_STOREFRONT_URL_REQUIRED` when the Storefront URL is absent, empty, or whitespace-only. `dev:store` MUST run the preflight before `tdk up store` and MUST NOT invoke TDK when that check fails.
 
-#### Scenario: Missing URL
-- **WHEN** an operator runs `tdk up store` with an empty `THOR_STOREFRONT_URL`
-- **THEN** startup fails with an error naming `THOR_STOREFRONT_URL` and no product grid is served
+#### Scenario: Missing URL in documented startup
+- **WHEN** an operator runs `bun run dev:store` without a nonblank `THOR_STOREFRONT_URL`
+- **THEN** preflight exits nonzero with `THOR_STOREFRONT_URL_REQUIRED` and `tdk up store` is not invoked
 
-### Requirement: Dry run does not call Thor
-`tdk up store --dry-run` MUST print the Traefik hosts and whether the Thor environment is set, and MUST NOT call Thor.
+#### Scenario: Configured startup
+- **WHEN** an operator runs `bun run dev:store` with valid Thor configuration
+- **THEN** preflight succeeds and the wrapper invokes `tdk up store`
 
-#### Scenario: Dry run
-- **WHEN** an operator runs `tdk up store --dry-run`
-- **THEN** the output shows the Traefik hosts and Thor environment status, and Thor receives no request
+### Requirement: BFF startup guard
+The BFF entrypoint MUST reuse the Storefront URL validation before binding its listener. With missing configuration it MUST emit `THOR_STOREFRONT_URL_REQUIRED` and fail to become healthy. The storefront MUST show an explicit startup or connection error rather than a successful empty grid. This requirement MUST NOT depend on the TDK CLI inspecting Thor variables.
+
+#### Scenario: Direct TDK startup without URL
+- **WHEN** an operator bypasses the wrapper and runs `tdk up store` without a nonblank `THOR_STOREFRONT_URL`
+- **THEN** the BFF fails before listening with `THOR_STOREFRONT_URL_REQUIRED`, and the storefront cannot show a successful empty product grid
+
+### Requirement: Offline repo configuration report
+`bun run thor:preflight --dry-run` MUST include the existing `tdk up store --dry-run` resource and generated Traefik route preview, plus set/missing status for the Thor environment variables. It MUST NOT print credential values, contact Thor, modify configuration, or start containers. Missing variables MUST be reported without failing the report-only mode; a failure of the TDK preview MUST be propagated. Plain `tdk up store --dry-run` MUST NOT be required to add Thor-specific output.
+
+#### Scenario: Offline report with missing configuration
+- **WHEN** an operator runs `bun run thor:preflight --dry-run` with missing Thor configuration and a successful TDK preview
+- **THEN** the command exits zero, reports generated routes and missing variables without credential values, and makes no Thor request or runtime change
+
+#### Scenario: Failed TDK preview
+- **WHEN** the TDK preview invoked by `bun run thor:preflight --dry-run` exits nonzero
+- **THEN** the repo report also exits nonzero and surfaces the preview failure
 
 ### Requirement: Public schema codegen
-Schema fetch MUST NOT be tenant-specific. Codegen MUST use `@thor-commerce/graphql-codegen-preset` against the public Storefront schema at `https://api.thorcommerce.io/storefront/graphql/schema.graphql` and the public Admin schema. A `bun run codegen` script in `storefront-web` MUST regenerate types and MUST NOT be a TDK generator.
+Schema fetch MUST NOT be tenant-specific. Codegen MUST use `@thor-commerce/graphql-codegen-preset` against the public Storefront schema at `https://api.thorcommerce.io/storefront/graphql/schema.graphql` and the public Admin schema at `https://api.thorcommerce.io/admin/graphql/schema.graphql` (the preset defaults). A `bun run codegen` script in `storefront-web` MUST regenerate types and MUST NOT be a TDK generator.
 
 #### Scenario: Type generation
 - **WHEN** an operator runs `bun run codegen` in `storefront-web`

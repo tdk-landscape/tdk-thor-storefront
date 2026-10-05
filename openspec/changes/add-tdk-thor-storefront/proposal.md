@@ -7,8 +7,8 @@ Agencies with an existing Thor Commerce store need a TDK landscape they can clon
 - Add the `tdk-landscape/tdk-thor-storefront` example: one `store` stack with a Vue 3 + Vite storefront and a Hono-on-Bun Thor BFF, with no database or cluster.
 - Put both resources under `services/store/`, wire the storefront to depend on the BFF, and use the shared Docker, nginx, Traefik, and Tilt runtime without publishing container ports on localhost.
 - Require TDK CLI 1.3.75 or newer for Vue framework support; document that older CLIs ignore `"framework": "vue"` and generate React configuration.
-- Commit `.env.example`, keep `.env` ignored, fail by name when `THOR_STOREFRONT_URL` is missing, and make `tdk up store --dry-run` show routes and Thor env status without contacting Thor.
-- Provide a Thor-backed product grid and detail, market switching, cart creation and add-line, hosted-checkout handoff, and one Admin collections read on the BFF. Thor supplies all prices.
+- Commit `.env.example`, keep `.env` ignored, add a repo-owned `bun run thor:preflight` that fails by name when `THOR_STOREFRONT_URL` is missing, and provide `bun run thor:preflight --dry-run` to report generated TDK routes and Thor env status without contacting Thor. `bun run dev:store` runs preflight before `tdk up store`; the BFF repeats configuration validation at startup.
+- Provide a Thor-backed product grid and detail, market switching, cart creation and add-line, hosted-checkout handoff, and one Admin collections read on the BFF. The browser calls the BFF for every Storefront GraphQL operation; the BFF calls Thor and holds all Thor credentials. Thor supplies all prices.
 - State the ownership split in the README: TDK owns the landscape; Thor owns commerce.
 
 ## Capabilities
@@ -16,7 +16,7 @@ Agencies with an existing Thor Commerce store need a TDK landscape they can clon
 ### New Capabilities
 
 - `store-landscape`: One `store` stack with the Vue storefront and Thor BFF on the shared TDK runtime.
-- `thor-store-connection`: Store configuration, startup validation, dry-run behavior, and public-schema codegen.
+- `thor-store-connection`: Store configuration, repo-owned preflight and startup validation, offline configuration reporting, and public-schema codegen.
 - `thor-bff`: Server-side Thor credentials and market context, plus the single Admin read.
 - `storefront-screens`: Thor-backed grid, detail, market switch, cart, and hosted-checkout handoff.
 
