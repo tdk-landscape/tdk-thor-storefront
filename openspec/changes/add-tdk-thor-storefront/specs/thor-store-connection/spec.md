@@ -5,7 +5,11 @@ Point the landscape at an existing Thor store and fail by name when its Storefro
 ## ADDED Requirements
 
 ### Requirement: Documented store environment
-The repo MUST commit `.env.example` and MUST NOT commit `.env`. The example MUST include `THOR_STOREFRONT_URL`, `THOR_ADMIN_URL`, `THOR_ACCESS_TOKEN`, `THOR_CHANNEL`, `THOR_MARKET`, `THOR_CURRENCY`, `THOR_STORE_ID`, separate `THOR_ADMIN_API_KEY`, optional `THOR_MARKETS`, and optional `THOR_COMPANY_LOCATION_ID` with its `THOR_COMPANY_PRICE_CHANNEL_ID` mapping. The Storefront token MUST use `x-thor-storefront-token`; the separate Admin key MUST use `X-Api-Key`, exclusively on the server.
+The repo MUST commit `.env.example` and MUST NOT commit `.env`. The example MUST identify `<project-slug>` as the Thor project slug and show `THOR_STOREFRONT_URL=https://api.thorcommerce.io/<project-slug>/storefront/graphql` and `THOR_ADMIN_URL=https://api.thorcommerce.io/<project-slug>/admin/graphql`. It MUST explain that the slug is available from `accounts.thorcommerce.io` after a store is created, or from the completion prompt emitted by `npx --yes create-thor-store@latest --workspace <ThorStores-folder>`. Onboarding opens a link and leaves its runner running; the operator completes it and supplies the prompt output. These are hosted Thor URLs, not localhost values, and the landscape does not run Thor. The example MUST also include `THOR_ACCESS_TOKEN`, `THOR_CHANNEL`, `THOR_MARKET`, `THOR_CURRENCY`, `THOR_STORE_ID`, separate `THOR_ADMIN_API_KEY`, optional `THOR_MARKETS`, and optional `THOR_COMPANY_LOCATION_ID` with its `THOR_COMPANY_PRICE_CHANNEL_ID` mapping. The Storefront token MUST use `x-thor-storefront-token`; the separate Admin key MUST use `X-Api-Key`, exclusively on the server.
+
+#### Scenario: Project slug URLs
+- **WHEN** an operator uses the project slug `acme`
+- **THEN** `.env.example` documents `https://api.thorcommerce.io/acme/storefront/graphql` and `https://api.thorcommerce.io/acme/admin/graphql`, and explains that these hosted endpoints are not localhost
 
 #### Scenario: Clone setup
 - **WHEN** an operator copies `.env.example` to `.env` and fills the Thor URLs, access token, and default market context
