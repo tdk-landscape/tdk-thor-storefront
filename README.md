@@ -37,6 +37,15 @@ Thor runs at `api.thorcommerce.io`. The local TDK stack connects to that hosted 
 
 For an existing store, get its project slug from [accounts.thorcommerce.io](https://accounts.thorcommerce.io) and obtain the Storefront token, store ID, price-channel ID, country, and currency from its configuration.
 
+The local setup page can also be used to browse storefront directions before creating the Thor store. It provides Everyday, Utility, Studio, Fieldwork, Supply, and Atelier previews:
+
+```sh
+bun run store:setup
+# Open http://app.tdk-thor-storefront.localhost:8080/new-store
+```
+
+The launcher uses port 8080, so stop it before starting the TDK Traefik stack. The visual choice is a reference for the storefront look; Thor onboarding creates the hosted store separately. Set `THOR_SETUP_URL` to a saved local onboarding link if you want the **Continue saved setup** action to appear.
+
 To create a store on this computer:
 
 ```sh
